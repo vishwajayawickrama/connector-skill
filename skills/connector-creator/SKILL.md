@@ -121,6 +121,9 @@ bash scripts/check_environment.sh
 # Find OpenAPI spec candidates in CWD — use before prompting for spec path
 bash scripts/find_spec_files.sh
 
+# Initialise a Ballerina package in the output dir (bal new . + remove main.bal)
+bash scripts/init_ballerina_package.sh "<output-dir>"
+
 # Validate spec file (YAML/JSON validity + required fields)
 python3 scripts/validate_spec.py "<spec-path>"
 

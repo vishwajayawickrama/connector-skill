@@ -79,7 +79,7 @@ Check whether the output directory is already a Ballerina package:
 test -f "<OUTPUT_DIR>/Ballerina.toml" && echo "exists" || echo "missing"
 ```
 
-**If `Ballerina.toml` exists**: extract the fields with:
+**If `Ballerina.toml` exists**: read it with:
 
 ```bash
 python3 <skill-root>/scripts/parse_ballerina_toml.py "<OUTPUT_DIR>/Ballerina.toml"
@@ -88,47 +88,45 @@ python3 <skill-root>/scripts/parse_ballerina_toml.py "<OUTPUT_DIR>/Ballerina.tom
 Confirm with the user:
 > Found existing Ballerina.toml — org: `<org>`, package: `<name>`. Use these? [Y/n]
 
-Store as `BAL_ORG` and `BAL_PACKAGE`.
+If the user wants to change them, ask using the 2+1 prompts below. Store as `BAL_ORG` and `BAL_PACKAGE`.
 
-**If `Ballerina.toml` is missing**: ask:
-> `<OUTPUT_DIR>` is not a Ballerina package yet (no Ballerina.toml). Should I initialise one?
-> 1. Yes — I'll provide the org and package name (recommended)
-> 2. No — I'll set it up manually before the build stage
+**If `Ballerina.toml` is missing**: scaffold the package using `bal new .`:
 
-If yes, ask using 2+1 prompting:
+```bash
+bash <skill-root>/scripts/init_ballerina_package.sh "<OUTPUT_DIR>"
+```
 
-> Which Ballerina org should this package belong to?
+This runs `bal new .` (which reads the user's Ballerina settings for the default org and derives the package name from the directory) and removes the generated `main.bal`. Then read the generated `Ballerina.toml`:
+
+```bash
+python3 <skill-root>/scripts/parse_ballerina_toml.py "<OUTPUT_DIR>/Ballerina.toml"
+```
+
+Show the result to the user and let them confirm or override using 2+1 prompting:
+
+> Initialised package — org: `<generated-org>`, package: `<generated-name>`. Keep these or customise?
+> 1. Keep `<generated-org>` / `<generated-name>` (recommended)
+> 2. Change org only
+> 3. Change both org and package name
+
+If changing org, offer:
+> Which Ballerina org?
 > 1. `ballerinax` (recommended — standard for Ballerina Central connectors)
 > 2. `wso2`
 > 3. Enter a custom org name
 
-Store the selection as `BAL_ORG`.
+If changing package name, derive two options from `SPEC_METADATA.title`:
+- Full slug: lowercase, spaces and punctuation → underscores (e.g. `microsoft_graph_sharepoint_admin`)
+- Short slug: last meaningful words after the last separator (e.g. `sharepoint_admin`)
 
-Derive two name options from `SPEC_METADATA.title`:
-- Full slug: lowercase, spaces and punctuation → underscores, strip leading/trailing underscores (e.g. `microsoft_graph_sharepoint_admin`)
-- Short slug: last meaningful word(s) after the last separator (e.g. `sharepoint_admin`)
-
-> What should the Ballerina package name be?
-> 1. `<full-slug>` (recommended — e.g. `microsoft_graph_sharepoint_admin`)
-> 2. `<short-slug>` (e.g. `sharepoint_admin`)
+> Which package name?
+> 1. `<full-slug>` (recommended)
+> 2. `<short-slug>`
 > 3. Enter a custom package name
 
-Store the selection as `BAL_PACKAGE`.
+If org or package changed, update `<OUTPUT_DIR>/Ballerina.toml` with the new values (edit the `org` and `name` fields in the `[package]` section).
 
-Create `<OUTPUT_DIR>/Ballerina.toml`:
-
-```toml
-[package]
-org = "<BAL_ORG>"
-name = "<BAL_PACKAGE>"
-version = "1.0.0"
-distribution = "2201.12.0"
-
-[build-options]
-observabilityIncluded = true
-```
-
-If no: store `BAL_ORG` and `BAL_PACKAGE` as empty and proceed.
+Store final values as `BAL_ORG` and `BAL_PACKAGE`.
 
 ---
 
