@@ -8,13 +8,19 @@
 
 set -euo pipefail
 
-SPEC_PATH="${1:?Usage: generate_mock_stub.sh <spec-path> <output-dir>}"
-OUTPUT_DIR="${2:?Usage: generate_mock_stub.sh <spec-path> <output-dir>}"
+SPEC_PATH="${1:?Usage: generate_mock_stub.sh <spec-path> <output-dir> [operations]}"
+OUTPUT_DIR="${2:?Usage: generate_mock_stub.sh <spec-path> <output-dir> [operations]}"
+OPERATIONS="${3:-}"   # optional: comma-separated operation IDs (used when spec has >30 operations)
 MOCK_DIR="${OUTPUT_DIR}/modules/mock.server"
 
 # Generate service stub — no --mode flag produces a service stub (not a client)
 echo ">>> Running bal openapi to generate service stub..."
-bal openapi -i "${SPEC_PATH}" -o "${MOCK_DIR}"
+if [ -n "$OPERATIONS" ]; then
+  echo ">>> Filtering to operations: ${OPERATIONS}"
+  bal openapi -i "${SPEC_PATH}" -o "${MOCK_DIR}" --operations "${OPERATIONS}"
+else
+  bal openapi -i "${SPEC_PATH}" -o "${MOCK_DIR}"
+fi
 
 # Rename the generated service file to mock_server.bal
 SERVICE_FILE="${MOCK_DIR}/aligned_ballerina_openapi_service.bal"
