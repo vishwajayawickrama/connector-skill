@@ -7,6 +7,29 @@ If skipped, run `bash <skill-root>/scripts/find_spec_output.sh "<SPEC_DIR>"` to 
 
 ---
 
+## Step 0: Check for existing sanitations
+
+Before running any new processing, check whether a `sanitations.md` already exists from a previous run:
+
+```bash
+test -f "<SPEC_DIR>/sanitations.md" && echo "exists" || echo "missing"
+```
+
+**If `sanitations.md` exists**, offer the following 2+1 choice:
+
+> A `sanitations.md` was found at `<SPEC_DIR>/sanitations.md`. Apply the recorded sanitations to the spec before processing?
+> 1. Yes — apply pre-existing sanitations first (recommended — preserves prior human edits)
+> 2. No — skip, start fresh from the original spec
+> 3. View `sanitations.md` before deciding
+
+- **Option 1**: Read `sanitations.md`. For each numbered section, extract the `Updated:` value and patch the corresponding field in `<SPEC_PATH>` in-place. Then proceed to Step 1.
+- **Option 2**: Proceed directly to Step 1. `sanitations.md` will be regenerated from scratch at Step 5.
+- **Option 3**: Print the full contents of `sanitations.md`, then re-present this 2+1 choice.
+
+**If `sanitations.md` does not exist**, skip Step 0 entirely and proceed to Step 1.
+
+---
+
 ## Step 1: Parse the spec (structured extraction)
 
 Run:

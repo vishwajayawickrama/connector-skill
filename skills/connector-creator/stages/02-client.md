@@ -9,10 +9,20 @@ If skipped, verify that `<OUTPUT_DIR>/client.bal` already exists — halt if not
 
 ## Step 1: Build the `bal openapi` command
 
+Resolve the spec input file:
+- Use `ALIGNED_SPEC` if set (populated by Stage 01 Step 3b — this is the `.json` path after YAML conversion).
+- If `ALIGNED_SPEC` is not set (Stage 01 was skipped), run:
+  ```bash
+  bash <skill-root>/scripts/find_spec_output.sh "<SPEC_DIR>"
+  ```
+  and set `ALIGNED_SPEC` from the result before continuing.
+
 Base command:
 ```
-bal openapi -i <SPEC_DIR>/aligned_ballerina_openapi.yaml --mode client -o <OUTPUT_DIR>
+bal openapi -i <ALIGNED_SPEC> --mode client -o <OUTPUT_DIR>
 ```
+
+> **Note**: `bal openapi --mode client` outputs `client.bal`, `types.bal`, and `utils.bal` into `<OUTPUT_DIR>`. It does **not** create or modify `Ballerina.toml` — that is handled in Stage 00.
 
 Append options based on collected configuration:
 - If `TAGS` is non-empty: add `--tags <tag>` for each tag

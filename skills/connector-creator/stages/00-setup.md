@@ -90,43 +90,45 @@ Confirm with the user:
 
 If the user wants to change them, ask using the 2+1 prompts below. Store as `BAL_ORG` and `BAL_PACKAGE`.
 
-**If `Ballerina.toml` is missing**: scaffold the package using `bal new .`:
+**If `Ballerina.toml` is missing**: print a clear message and scaffold the package:
+
+```
+⚠ No Ballerina project found at <OUTPUT_DIR> — creating one with `bal new .`
+```
 
 ```bash
 bash <skill-root>/scripts/init_ballerina_package.sh "<OUTPUT_DIR>"
 ```
 
-This runs `bal new .` (which reads the user's Ballerina settings for the default org and derives the package name from the directory) and removes the generated `main.bal`. Then read the generated `Ballerina.toml`:
+`bal new .` reads the user's Ballerina settings to pick a default org and derives the package name from the directory name. It also creates `main.bal` which the script removes immediately (not needed for a connector package).
+
+Then read the generated `Ballerina.toml`:
 
 ```bash
 python3 <skill-root>/scripts/parse_ballerina_toml.py "<OUTPUT_DIR>/Ballerina.toml"
 ```
 
-Show the result to the user and let them confirm or override using 2+1 prompting:
+Ask about **org** with a 2+1 prompt:
 
-> Initialised package — org: `<generated-org>`, package: `<generated-name>`. Keep these or customise?
-> 1. Keep `<generated-org>` / `<generated-name>` (recommended)
-> 2. Change org only
-> 3. Change both org and package name
-
-If changing org, offer:
-> Which Ballerina org?
-> 1. `ballerinax` (recommended — standard for Ballerina Central connectors)
-> 2. `wso2`
+> What should the package org be?
+> 1. `<generated-org>` — auto-generated from your Ballerina settings (recommended)
+> 2. `ballerinax` — standard for Ballerina Central connectors
 > 3. Enter a custom org name
 
-If changing package name, derive two options from `SPEC_METADATA.title`:
+Ask about **package name** with a separate 2+1 prompt. Derive two slug options from `SPEC_METADATA.title`:
 - Full slug: lowercase, spaces and punctuation → underscores (e.g. `microsoft_graph_sharepoint_admin`)
-- Short slug: last meaningful words after the last separator (e.g. `sharepoint_admin`)
+- Short slug: last 1–2 meaningful words (e.g. `sharepoint_admin`)
 
-> Which package name?
-> 1. `<full-slug>` (recommended)
-> 2. `<short-slug>`
+> What should the package name be?
+> 1. `<generated-name>` — auto-generated from the directory name (recommended)
+> 2. `<spec-derived-slug>` — derived from the spec title (`<SPEC_METADATA.title>`)
 > 3. Enter a custom package name
 
-If org or package changed, update `<OUTPUT_DIR>/Ballerina.toml` with the new values (edit the `org` and `name` fields in the `[package]` section).
+If org or name changed, update `<OUTPUT_DIR>/Ballerina.toml` (edit the `org` and `name` fields in the `[package]` section).
 
 Store final values as `BAL_ORG` and `BAL_PACKAGE`.
+
+> **Note**: `bal openapi --mode client` (Stage 02) outputs `client.bal`, `types.bal`, and `utils.bal` into `<OUTPUT_DIR>` but does **not** create or modify `Ballerina.toml`. This step is the sole owner of package initialisation.
 
 ---
 
