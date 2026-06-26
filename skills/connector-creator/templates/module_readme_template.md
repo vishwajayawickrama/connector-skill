@@ -1,23 +1,17 @@
-# Overview
+## Overview
 
-The `<BAL_ORG>/<BAL_PACKAGE>` connector provides access to the [<API_TITLE>](<API_URL>) API (<API_VERSION>).
+[//]: # (TODO: Add overview mentioning the purpose of the module, supported REST API versions, and other high-level details.)
 
-<AI_GENERATED_OVERVIEW>
+## Setup guide
 
-## Compatibility
-
-| Ballerina Language Version | API Version |
-|---------------------------|-------------|
-| Swan Lake                 | <API_VERSION> |
-
-## Setup Guide
-
-<AI_GENERATED_SETUP>
+[//]: # (TODO: Add detailed steps to obtain credentials and configure the module.)
 
 ## Quickstart
 
-<AI_GENERATED_QUICKSTART>
+[//]: # (TODO: Add a quickstart guide to demonstrate a basic functionality of the module, including sample code snippets.)
 
 ## Examples
 
-<AI_GENERATED_EXAMPLES>
+The `{{MODULE_NAME_PC}}` connector provides practical examples illustrating usage in various scenarios. Explore these [examples](https://github.com/{{REPO_NAME}}/tree/main/examples/), covering the following use cases:
+
+[//]: # (TODO: Add examples)
