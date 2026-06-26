@@ -24,6 +24,20 @@ Store as `TOML_META`. Use `TOML_META.distribution` and `TOML_META.version` when 
 
 ---
 
+## Step 2: Pack connector to local repository
+
+Before generating any examples, publish the connector so that each example's `import <BAL_ORG>/<BAL_PACKAGE>` can resolve at build time:
+
+```bash
+bash <skill-root>/scripts/run_bal_command.sh "bal pack" "<OUTPUT_DIR>"
+```
+
+This writes the packed connector to `~/.ballerina/repositories/local/bala/`. The `[[dependency]]` block in each example's `Ballerina.toml` points here.
+
+If `bal pack` fails, print the error and **halt** — examples cannot build without a packaged connector.
+
+---
+
 ## Step 3: For each example (repeat `NUM_EXAMPLES` times)
 
 ### 3a: Select a use case
