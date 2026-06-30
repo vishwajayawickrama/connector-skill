@@ -23,20 +23,35 @@ Store the JSON output as `CLIENT_ANALYSIS`. Fields used in this stage:
 
 ## Step 1b: Operation count threshold
 
-Compare `CLIENT_ANALYSIS.apiCount` against `MAX_OPERATIONS = 30`:
+Parse operationIds from the aligned spec — these are the values `bal openapi --operations` requires:
 
-**If `apiCount <= 30`**: set `SELECTED_OPERATIONS = ""`. The full spec will be used for the mock stub.
+```bash
+python3 <skill-root>/scripts/parse_openapi_spec.py "<ALIGNED_SPEC>"
+```
 
-**If `apiCount > 30`**: ask the LLM to select 30 operations from `CLIENT_ANALYSIS.methods`.
+Store as `ALIGNED_SPEC_METADATA`. Extract the non-empty operationIds:
+```
+OPERATION_IDS = [p.operationId for p in ALIGNED_SPEC_METADATA.paths if p.operationId != ""]
+```
 
-LLM prompt rules for operation selection:
-- Your response must be **ONLY a comma-separated list of operation IDs with NO spaces** — no other text, no explanations
-- Select exactly 30
-- Criteria: core CRUD, most frequently used, variety across resource types, search/discovery, lifecycle operations
+> **Why re-parse the aligned spec**: Stage 01 may rename operationIds during AI-assisted enhancement. `SPEC_METADATA` from Stage 00 reflects the original spec and may be stale. The aligned spec is what `bal openapi` reads, so its operationIds are authoritative.
 
-Example valid response: `getUser,listUsers,createUser,updateUser,deleteUser,...`
+Compare `len(OPERATION_IDS)` against `MAX_OPERATIONS = 30`:
+
+**If `len(OPERATION_IDS) <= 30`**: set `SELECTED_OPERATIONS = ""`. The full spec will be used for the mock stub.
+
+**If `len(OPERATION_IDS) > 30`**: prompt the LLM with the full operationId list:
+
+> Your response must be **ONLY a comma-separated list of operationIds with NO spaces** — no other text, no explanations.
+> Select exactly 30 from the following list.
+> Criteria: core CRUD, most frequently used, variety across resource types, search/discovery, lifecycle operations.
+> OperationIds: `<OPERATION_IDS joined by comma>`
+
+Example valid response: `getFile,listFiles,uploadFile,deleteFile,createFolder,...`
 
 Store the result as `SELECTED_OPERATIONS`.
+
+> `CLIENT_ANALYSIS` (from Step 1) is still used in Steps 2c and 3 for `methodType`, `configType`, and method signatures. Only the operation count and selection source changes to the spec.
 
 ---
 
@@ -51,18 +66,19 @@ bash <skill-root>/scripts/setup_mock_server.sh "<OUTPUT_DIR>"
 ### 2b: Generate service stub from the spec
 
 ```bash
-bash <skill-root>/scripts/generate_mock_stub.sh "<ALIGNED_SPEC>" "<OUTPUT_DIR>" "<SELECTED_OPERATIONS>"
+bash <skill-root>/scripts/generate_mock_stub.sh "<ALIGNED_SPEC>" "<OUTPUT_DIR>" "<SELECTED_OPERATIONS>" "<LICENSE_PATH>"
 ```
 
-Pass `SELECTED_OPERATIONS` as the 3rd argument. If it's empty, the script runs without `--operations` and generates a stub for all operations.
+Pass `SELECTED_OPERATIONS` as the 3rd argument (empty string if not filtered) and `LICENSE_PATH` as the 4th argument (empty string if not set). The script appends `--operations` and `--license` only when the respective values are non-empty.
 
 This runs `bal openapi -i <spec> -o modules/mock.server` (no `--mode` flag — produces a service stub, not a client). It renames `aligned_ballerina_openapi_service.bal` → `mock_server.bal` and removes the generated `client.bal`/`types.bal` from the mock module directory.
 
 ### 2c: Complete the stub — LLM fills in mock responses
 
-Read both files into context:
+Read these files into context:
 1. `<OUTPUT_DIR>/modules/mock.server/mock_server.bal` — the generated stub (correct signatures, empty bodies)
-2. `<OUTPUT_DIR>/types.bal` — the connector's Ballerina record type definitions
+2. `<OUTPUT_DIR>/modules/mock.server/utils.bal` — utility helpers generated alongside the stub
+3. `<OUTPUT_DIR>/modules/mock.server/types.bal` — type definitions generated alongside the stub
 
 Rewrite `mock_server.bal` completing every resource function body. The following rules are **all mandatory** — violations cause compilation failures:
 
@@ -73,7 +89,9 @@ Rewrite `mock_server.bal` completing every resource function body. The following
 - Keep `http:Listener ep0 = new (9090);` exactly as generated
 - **DO NOT add a `public function init()` function** — the listener auto-starts when `bal test` runs; no init is needed or allowed
 - Keep all resource function signatures exactly as generated — do not rename, reorder, or change parameter types
-- **Fill every resource function body** — no empty bodies, no placeholder comments, no `NO_CONTENT`, no `panic`
+- **Fill every resource function body** — no empty bodies, no placeholder comments, no `panic`
+  - If the success return type is a **data record** (e.g. `File|AnydataDefault`, `Folder|AnydataDefault`): return a fully populated mock record — never return `http:NO_CONTENT` for these
+  - If the success return type is **`http:NoContent`** (DELETE or similar returning HTTP 204): return `http:NO_CONTENT` — this is the correct and only valid value
 - Preserve all doc comments (`# ...`) above resource functions
 
 **Data rules:**

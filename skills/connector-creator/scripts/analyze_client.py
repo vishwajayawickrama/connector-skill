@@ -102,25 +102,45 @@ def extract_return_type(after_params: str) -> str:
     return ""
 
 
-def extract_methods(content: str) -> list:
-    """Extract all remote and resource function signatures from client class body."""
+def extract_methods(content: str) -> tuple:
+    """Extract all remote and resource function signatures from client class body.
+
+    Returns (methods, method_type) where method_type is 'remote' or 'resource'.
+    """
     methods = []
+    method_type = "resource"  # bal openapi --mode client default
 
     # Find the client class body
     class_match = re.search(r'isolated\s+client\s+class\s+Client\s*\{', content)
     if not class_match:
-        return methods
+        return methods, method_type
 
     class_start = class_match.end()
 
-    # Pattern for remote or resource functions
+    # Unified pattern for both kinds:
+    #   remote: (remote) isolated function (funcName)(
+    #   resource: (resource) isolated function (accessor) (path)(
+    # Group 3 (optional) captures the path segment for resource functions.
     fn_pattern = re.compile(
-        r'(?:remote|resource)\s+isolated\s+function\s+([\w/]+)\s*\(',
+        r'(remote|resource)\s+isolated\s+function\s+(\w+)(?:\s+([^(]+))?\s*\(',
         re.MULTILINE,
     )
 
+    first = True
     for fn_match in fn_pattern.finditer(content, class_start):
-        name = fn_match.group(1)
+        fn_kind = fn_match.group(1)   # "remote" or "resource"
+        fn_name = fn_match.group(2)   # function name (remote) or HTTP accessor (resource)
+        fn_path = fn_match.group(3)   # path for resource functions, None for remote
+
+        if first:
+            method_type = fn_kind
+            first = False
+
+        if fn_kind == "resource" and fn_path:
+            name = f"{fn_name} {fn_path.strip()}"
+        else:
+            name = fn_name
+
         paren_start = fn_match.end() - 1  # position of '('
         paren_end = balance_parens(content, paren_start)
         params_str = content[paren_start + 1:paren_end - 1]
@@ -132,7 +152,7 @@ def extract_methods(content: str) -> list:
             "returnType": return_type,
         })
 
-    return methods
+    return methods, method_type
 
 
 def analyze(client_path: str) -> dict:
@@ -142,13 +162,14 @@ def analyze(client_path: str) -> dict:
 
     content = open(client_path, "r", encoding="utf-8").read()
 
-    methods = extract_methods(content)
+    methods, method_type = extract_methods(content)
     api_count = len(methods)
 
     return {
         "apiCount": api_count,
         "numExamples": number_of_examples(api_count),
         "configType": extract_config_type(content),
+        "methodType": method_type,
         "methods": methods,
     }
 

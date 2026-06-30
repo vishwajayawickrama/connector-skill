@@ -19,7 +19,7 @@ Resolve the spec input file:
 
 Base command:
 ```
-bal openapi -i <ALIGNED_SPEC> --mode client -o <OUTPUT_DIR>
+bal openapi -i <ALIGNED_SPEC> -o <OUTPUT_DIR> --mode client
 ```
 
 > **Note**: `bal openapi --mode client` outputs `client.bal`, `types.bal`, and `utils.bal` into `<OUTPUT_DIR>`. It does **not** create or modify `Ballerina.toml` — that is handled in Stage 00.
@@ -30,7 +30,7 @@ Append options based on collected configuration:
 - If `USE_REMOTE` is true: add `--client-methods remote`
 - If `LICENSE_PATH` is set and the file exists: add `--license <LICENSE_PATH>`
 
-> ⚠️ The `--license` flag accepts the raw license file path — `bal openapi` reads and formats it as `//` comments automatically. Do NOT read the file contents, reformat them, or write a modified version to a temp file.
+> The `--license` flag accepts the raw license file path — `bal openapi` reads and formats it as `//` comments automatically. Do NOT read the file contents, reformat them, or write a modified version to a temp file.
 
 ---
 
@@ -38,14 +38,14 @@ Append options based on collected configuration:
 
 ```bash
 bash <skill-root>/scripts/run_bal_command.sh \
-  "bal openapi -i <ALIGNED_SPEC> --mode client -o <OUTPUT_DIR> --license <LICENSE_PATH> [--tags <tags>] [--operations <ops>] [--client-methods remote]" \
+  "bal openapi -i <ALIGNED_SPEC> -o <OUTPUT_DIR> --license <LICENSE_PATH> [--tags <tags>] [--operations <ops>] [--client-methods remote] --mode client" \
   "<OUTPUT_DIR>"
 ```
 
 Omit `--license <LICENSE_PATH>` if `LICENSE_PATH` is not set. Omit any other optional flag that does not apply.
 
 ### On success:
-Verify that `<OUTPUT_DIR>/client.bal` and `<OUTPUT_DIR>/types.bal` were created. Print the file list.
+Verify that `<OUTPUT_DIR>/client.bal`, `<OUTPUT_DIR>/types.bal`, and `<OUTPUT_DIR>/utils.bal` were created. Print the file list.
 
 ### On failure:
 `bal openapi` failures indicate spec or flag issues — do not attempt LLM fixes here. Print the error and ask:
@@ -76,6 +76,7 @@ Print:
 ✓ Client Generation complete
   client.bal:  <OUTPUT_DIR>/client.bal
   types.bal:   <OUTPUT_DIR>/types.bal
+  utils.bal:   <OUTPUT_DIR>/utils.bal
   build:       passed (fixed in <N> iteration(s) / clean)
 ```
 
