@@ -41,7 +41,9 @@ Do **not** re-read the entire source files — use the structured metadata and f
 
 ## Step 2: Generate root README
 
-Read `<skill-root>/templates/readme_template.md`.
+Check if `<OUTPUT_DIR>/README.md` already exists:
+- **Exists** → use it as the base. It may already have some or all `[//]: # (TODO: ...)` sections and `{{PLACEHOLDER}}` variables filled. Only replace what is still unfilled — do not overwrite content that is already present.
+- **Absent** → read `<skill-root>/templates/readme_template.md` and proceed as below.
 
 Replace all `{{PLACEHOLDER}}` variables using the mapping above.
 
@@ -59,7 +61,9 @@ Write to `<OUTPUT_DIR>/README.md`.
 
 ## Step 3: Generate Module.md (Ballerina Central)
 
-Read `<skill-root>/templates/module_readme_template.md`.
+Check if `<OUTPUT_DIR>/Module.md` already exists:
+- **Exists** → use it as the base. Only replace sections that still contain unfilled `[//]: # (TODO: ...)` markers or unresolved `{{PLACEHOLDER}}` variables. Do not overwrite already-filled content.
+- **Absent** → read `<skill-root>/templates/module_readme_template.md` and proceed as below.
 
 Replace all `{{PLACEHOLDER}}` variables using the mapping above.
 
@@ -73,7 +77,9 @@ Write to `<OUTPUT_DIR>/Module.md`.
 
 ### Tests README
 
-Read `<skill-root>/templates/tests_readme_template.md`.
+Check if `<OUTPUT_DIR>/tests/README.md` already exists:
+- **Exists** → use it as the base. Only fill in `AI_GENERATED_TESTING_APPROACH` if it still appears as the bare marker. Do not overwrite content that is already filled.
+- **Absent** → read `<skill-root>/templates/tests_readme_template.md` and proceed as below.
 
 Fill in `AI_GENERATED_TESTING_APPROACH` with a short description of what the test suite covers — derived from `CLIENT_ANALYSIS.methods` method names.
 
@@ -81,7 +87,9 @@ Write to `<OUTPUT_DIR>/tests/README.md`.
 
 ### Examples README
 
-Read `<skill-root>/templates/examples_readme_template.md`.
+Check if `<EXAMPLE_DIR>/README.md` already exists:
+- **Exists** → use it as the base. Update or add example table rows for any new examples added since the last run. Only replace `<angle-bracket>` placeholders that are still unfilled. Do not overwrite content that is already present.
+- **Absent** → read `<skill-root>/templates/examples_readme_template.md` and proceed as below.
 
 Fill in:
 - `<BAL_ORG>/<BAL_PACKAGE>` → from shared state
