@@ -26,7 +26,26 @@ test -f "<SPEC_DIR>/sanitations.md" && echo "exists" || echo "missing"
 - **Option 2**: Proceed directly to Step 1. `sanitations.md` will be regenerated from scratch at Step 5.
 - **Option 3**: Print the full contents of `sanitations.md`, then re-present this 2+1 choice.
 
-**If `sanitations.md` does not exist**, skip Step 0 entirely and proceed to Step 1.
+**If `sanitations.md` does not exist**, skip Step 0 entirely and proceed to Step 0b.
+
+---
+
+## Step 0b: Common path prefix normalization
+
+Run on the original spec before flattening so that `bal openapi flatten` and
+`bal openapi align` inherit the correct server URL and shortened paths:
+
+```bash
+python3 <skill-root>/scripts/normalize_base_url.py "<SPEC_PATH>"
+```
+
+Store the single-line stdout as `PREFIX_NORMALIZATION_RESULT`.
+
+- If output is `Moved common prefix '<prefix>' into base URL` — store `MOVED_PREFIX = <prefix>` (`<SPEC_PATH>` updated in-place)
+- If output is `No common path prefix found` — set `MOVED_PREFIX = ""`
+
+On re-runs where `sanitations.md` already recorded this change and Step 0 replayed it,
+this step will report no prefix found and is a no-op.
 
 ---
 
@@ -125,6 +144,21 @@ Create or update `<SPEC_DIR>/sanitations.md` following that structure:
 - Each section follows the `Original / Updated / Reason` format shown in the template
 - Mark auto-detected sections with `<!-- auto-generated -->` so future regenerations can identify and replace them while preserving human-authored sections
 - Footer: `## OpenAPI cli command` section with the exact `bal openapi` command used to generate the client
+
+**If `MOVED_PREFIX` is non-empty**, include these two numbered entries (following the pattern used across the HubSpot connector suite):
+
+```
+N.  **Change the `url` property of the servers object**: All API paths shared a common prefix.
+    - Original: `<original-server-url>`
+    - Updated:  `<original-server-url><MOVED_PREFIX>`
+    - Reason: Adding the common prefix `<MOVED_PREFIX>` to the base URL simplifies endpoint paths
+      and produces a more meaningful `serviceUrl` default in the generated client.
+
+N+1. **Update the API Paths**: The common prefix `<MOVED_PREFIX>` was removed from every path key.
+    - Original: Paths included the prefix (e.g. `<MOVED_PREFIX>/resource/{id}`)
+    - Updated:  Prefix removed from each path (e.g. `/resource/{id}`)
+    - Reason: Prefix is now represented in the base URL (see above).
+```
 
 ---
 
