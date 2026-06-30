@@ -28,7 +28,9 @@ Append options based on collected configuration:
 - If `TAGS` is non-empty: add `--tags <tag>` for each tag
 - If `OPERATIONS` is non-empty: add `--operations <id>` for each operation ID
 - If `USE_REMOTE` is true: add `--client-methods remote`
-- If `LICENSE_HEADER` is set: write the header text to a temp file and add `--license <temp-file>`
+- If `LICENSE_PATH` is set and the file exists: add `--license <LICENSE_PATH>`
+
+> ⚠️ The `--license` flag accepts the raw license file path — `bal openapi` reads and formats it as `//` comments automatically. Do NOT read the file contents, reformat them, or write a modified version to a temp file.
 
 ---
 
@@ -36,9 +38,11 @@ Append options based on collected configuration:
 
 ```bash
 bash <skill-root>/scripts/run_bal_command.sh \
-  "bal openapi -i <SPEC_DIR>/aligned_ballerina_openapi.yaml --mode client -o <OUTPUT_DIR> [OPTIONS]" \
+  "bal openapi -i <ALIGNED_SPEC> --mode client -o <OUTPUT_DIR> --license <LICENSE_PATH> [--tags <tags>] [--operations <ops>] [--client-methods remote]" \
   "<OUTPUT_DIR>"
 ```
+
+Omit `--license <LICENSE_PATH>` if `LICENSE_PATH` is not set. Omit any other optional flag that does not apply.
 
 ### On success:
 Verify that `<OUTPUT_DIR>/client.bal` and `<OUTPUT_DIR>/types.bal` were created. Print the file list.
@@ -60,6 +64,8 @@ bash <skill-root>/scripts/run_bal_command.sh "bal build" "<OUTPUT_DIR>"
 
 - Exit 0 → build clean, continue to completion
 - Non-zero → invoke the **Fix Procedure** (`references/fix-procedure.md`) with `BUILD_DIR = <OUTPUT_DIR>`
+
+> ⚠️ A `bal build` failure is always a generated-code issue, never a license format issue. Do NOT re-run client generation with different `--license` options or a reformatted header — go directly to the Fix Procedure.
 
 ---
 

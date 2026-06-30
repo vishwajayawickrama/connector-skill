@@ -80,7 +80,7 @@ These variables are set in Setup (stage 00) and used by all subsequent stages:
 | `EXAMPLE_DIR` | User-confirmed path for generated examples (default: `<OUTPUT_DIR>/examples`) |
 | `BAL_ORG` | Ballerina package org (read from Ballerina.toml or collected from user) |
 | `BAL_PACKAGE` | Ballerina package name (read from Ballerina.toml or collected from user) |
-| `LICENSE_HEADER` | Contents of the user-provided license file, or empty if not provided |
+| `LICENSE_PATH` | Path to the user-provided license file, or empty if not provided |
 | `TAGS` | List of OpenAPI tags to filter (or empty for all) |
 | `OPERATIONS` | List of operation IDs to filter (or empty for all) |
 | `USE_REMOTE` | Boolean — generate remote vs resource methods (connector-tool default: false) |

@@ -164,8 +164,8 @@ Ask:
 
 > Do you have a license header file to include in generated source files? If so, provide the path (or press Enter to skip):
 
-- Path provided → read file contents, store as `LICENSE_HEADER`.
-- Enter / skip → set `LICENSE_HEADER` to empty. No license header will be added.
+- Path provided → store the path as `LICENSE_PATH`. Do NOT read the file contents.
+- Enter / skip → set `LICENSE_PATH` to empty. No license header will be added.
 
 ---
 
