@@ -30,11 +30,12 @@ Before generating any examples, publish the connector so that each example's `im
 
 ```bash
 bash <skill-root>/scripts/run_bal_command.sh "bal pack" "<OUTPUT_DIR>"
+bash <skill-root>/scripts/run_bal_command.sh "bal push --repository=local" "<OUTPUT_DIR>"
 ```
 
-This writes the packed connector to `~/.ballerina/repositories/local/bala/`. The `[[dependency]]` block in each example's `Ballerina.toml` points here.
+`bal pack` creates the `.bala` archive in `target/`; `bal push --repository=local` publishes it to `~/.ballerina/repositories/local/bala/` so examples can resolve the import at build time.
 
-If `bal pack` fails, print the error and **halt** — examples cannot build without a packaged connector.
+If either command fails, print the error and **halt** — examples cannot build without a packaged and published connector.
 
 ---
 
@@ -113,9 +114,10 @@ observabilityIncluded = true
 org = "<BAL_ORG>"
 name = "<BAL_PACKAGE>"
 version = "<TOML_META.version>"
+repository = "local"
 ```
 
-The `[[dependency]]` block lets the example resolve `import <BAL_ORG>/<BAL_PACKAGE>` from the local connector.
+The `[[dependency]]` block with `repository = "local"` lets the example resolve `import <BAL_ORG>/<BAL_PACKAGE>` from the locally published connector.
 
 ### 3f: Compile and fix
 
@@ -132,36 +134,15 @@ Compilation errors in examples are **non-fatal if fix fails** — warn the user 
 
 ## Step 4: Write `<EXAMPLE_DIR>/README.md`
 
-```markdown
-# Examples
+Read `<skill-root>/templates/examples_readme_template.md`.
 
-The `<BAL_ORG>/<BAL_PACKAGE>` connector provides practical examples illustrating usage in various scenarios.
+Fill in:
+- `<BAL_ORG>/<BAL_PACKAGE>` → from shared state
+- Example table rows — one row per example generated in Step 3 (`<example-name>` and USE_CASE one-liner)
+- `<OUTPUT_DIR>` → the connector output directory path
+- Auth field names (`<auth_field_1>`, `<auth_field_2>`) → from `SPEC_METADATA.securitySchemes`
 
-| Example | Description |
-|---------|-------------|
-| [`<example-name>`](./<example-name>) | <USE_CASE one-liner> |
-
-## Prerequisites
-
-1. Build and push the connector to your local Ballerina repository:
-   ```bash
-   cd <OUTPUT_DIR>
-   bal pack && bal push --repository=local
-   ```
-
-2. For each example, create a `Config.toml` in the example directory:
-   ```toml
-   <auth_field_1> = "<value>"
-   <auth_field_2> = "<value>"
-   ```
-
-## Running an example
-
-```bash
-cd examples/<example-name>
-bal run
-```
-```
+Write the filled content to `<EXAMPLE_DIR>/README.md`.
 
 ---
 
