@@ -142,10 +142,7 @@ python3 scripts/parse_ballerina_toml.py "<Ballerina.toml>"
 # Analyse client.bal → JSON {apiCount, numExamples, configType, methods:[...]}
 python3 scripts/analyze_client.py "<client.bal>"
 
-# Set up mock.server module (bal add + scaffold cleanup)
-bash scripts/setup_mock_server.sh "<output-dir>"
-
-# Generate service stub from spec → modules/mock.server/mock_server.bal (run after setup)
+# Generate service stub from spec → tests/mock_service.bal
 bash scripts/generate_mock_stub.sh "<aligned-spec>" "<output-dir>"
 
 # Run any bal command in a working directory

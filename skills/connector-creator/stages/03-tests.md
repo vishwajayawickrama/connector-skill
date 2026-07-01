@@ -51,19 +51,13 @@ Example valid response: `getFile,listFiles,uploadFile,deleteFile,createFolder,..
 
 Store the result as `SELECTED_OPERATIONS`.
 
-> `CLIENT_ANALYSIS` (from Step 1) is still used in Steps 2c and 3 for `methodType`, `configType`, and method signatures. Only the operation count and selection source changes to the spec.
+> `CLIENT_ANALYSIS` (from Step 1) is still used in Steps 2b and 3 for `methodType`, `configType`, and method signatures. Only the operation count and selection source changes to the spec.
 
 ---
 
 ## Step 2: Generate the mock server stub
 
-### 2a: Set up the module
-
-```bash
-bash <skill-root>/scripts/setup_mock_server.sh "<OUTPUT_DIR>"
-```
-
-### 2b: Generate service stub from the spec
+### 2a: Generate service stub from the spec
 
 ```bash
 bash <skill-root>/scripts/generate_mock_stub.sh "<ALIGNED_SPEC>" "<OUTPUT_DIR>" "<SELECTED_OPERATIONS>" "<LICENSE_PATH>"
@@ -71,16 +65,14 @@ bash <skill-root>/scripts/generate_mock_stub.sh "<ALIGNED_SPEC>" "<OUTPUT_DIR>" 
 
 Pass `SELECTED_OPERATIONS` as the 3rd argument (empty string if not filtered) and `LICENSE_PATH` as the 4th argument (empty string if not set). The script appends `--operations` and `--license` only when the respective values are non-empty.
 
-This runs `bal openapi -i <spec> -o modules/mock.server` (no `--mode` flag — produces a service stub, not a client). It renames `aligned_ballerina_openapi_service.bal` → `mock_server.bal` and removes the generated `client.bal`/`types.bal` from the mock module directory.
+This runs `bal openapi -i <spec> --mode service -o tests/` — generating only a service stub (no client). It renames `aligned_ballerina_openapi_service.bal` → `mock_service.bal` and removes the generated `types.bal` and `client.bal` from `tests/` since root package types are already in scope.
 
-### 2c: Complete the stub — LLM fills in mock responses
+### 2b: Complete the stub — LLM fills in mock responses
 
-Read these files into context:
-1. `<OUTPUT_DIR>/modules/mock.server/mock_server.bal` — the generated stub (correct signatures, empty bodies)
-2. `<OUTPUT_DIR>/modules/mock.server/utils.bal` — utility helpers generated alongside the stub
-3. `<OUTPUT_DIR>/modules/mock.server/types.bal` — type definitions generated alongside the stub
+Read this file into context:
+1. `<OUTPUT_DIR>/tests/mock_service.bal` — the generated stub (correct signatures, empty bodies)
 
-Rewrite `mock_server.bal` completing every resource function body. The following rules are **all mandatory** — violations cause compilation failures:
+Rewrite `mock_service.bal` completing every resource function body. The following rules are **all mandatory** — violations cause compilation failures:
 
 **Output**: Raw Ballerina source code only. No conversational text, no explanations, no ` ```ballerina ` fences. Start with the first line of code and end with the last.
 
@@ -93,6 +85,11 @@ Rewrite `mock_server.bal` completing every resource function body. The following
   - If the success return type is a **data record** (e.g. `File|AnydataDefault`, `Folder|AnydataDefault`): return a fully populated mock record — never return `http:NO_CONTENT` for these
   - If the success return type is **`http:NoContent`** (DELETE or similar returning HTTP 204): return `http:NO_CONTENT` — this is the correct and only valid value
 - Preserve all doc comments (`# ...`) above resource functions
+
+**Import rules:**
+- **Types are already in scope**: the mock service lives in `tests/` which shares the root package namespace with `types.bal` — all root types are directly available with no import
+- The only allowed imports are `ballerina/http` and `ballerina/log` (and only if actually used)
+- Do NOT add any other import statements
 
 **Data rules:**
 - Return realistic, believable mock data (not empty strings, not zeros, not `""`)
@@ -111,7 +108,7 @@ Rewrite `mock_server.bal` completing every resource function body. The following
 
 Write `<OUTPUT_DIR>/tests/test.bal`. Provide the LLM with:
 - `BAL_ORG`, `BAL_PACKAGE`
-- Full content of `modules/mock.server/mock_server.bal` (the completed mock)
+- Full content of `tests/mock_service.bal` (the completed mock)
 - The client's `init` method signature (from `CLIENT_ANALYSIS`)
 - Referenced type definitions used in the init method
 - Full `client.bal` content
@@ -122,13 +119,12 @@ The following rules are **all mandatory**:
 
 **Output**: Raw Ballerina source code only. No code fences. Start with the copyright header.
 
-**Imports** (all required):
+**Imports** (required):
 ```ballerina
 import ballerina/os;
 import ballerina/test;
-import <BAL_ORG>/<BAL_PACKAGE>.mock.server as _;
 ```
-The `mock.server as _` import is what auto-starts the mock server — **do not** add `@test:BeforeSuite` or `@test:AfterSuite` to start or stop it.
+The mock service lives in the same `tests/` package scope and auto-starts when `bal test` runs — no side-effect import is needed. Do NOT add `import ... mock.server as _;` or any import referencing the mock service.
 
 **Environment setup**:
 ```ballerina
@@ -180,7 +176,7 @@ Test failures are **non-fatal** — record the result and continue. Print the te
 Print:
 ```
 ✓ Tests complete
-  mock server: <OUTPUT_DIR>/modules/mock.server/mock_server.bal
+  mock server: <OUTPUT_DIR>/tests/mock_service.bal
   test suite:  <OUTPUT_DIR>/tests/test.bal
   build:       passed (fixed in <N> iteration(s) / clean)
   test run:    <N passing, M failing / skipped>

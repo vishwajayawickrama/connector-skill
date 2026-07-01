@@ -102,7 +102,7 @@ Generated files:
   docs/spec/sanitations.md
   client.bal
   types.bal
-  modules/mock.server/mock_server.bal
+  tests/mock_service.bal
   tests/test.bal
   examples/<example-name>/main.bal
   examples/<example-name>/Ballerina.toml
