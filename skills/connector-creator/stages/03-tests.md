@@ -57,6 +57,16 @@ Store the result as `SELECTED_OPERATIONS`.
 
 ## Step 2: Generate the mock server stub
 
+### Regen pre-step (if `REGENERATION_MODE` is true): Delete existing tests directory
+
+```bash
+rm -rf "<OUTPUT_DIR>/tests"
+```
+
+Print: `>>> Cleared existing tests/ for regeneration`
+
+This ensures the mock service and test file are regenerated cleanly from the new spec with no stale files from the previous connector version.
+
 ### 2a: Generate service stub from the spec
 
 ```bash
