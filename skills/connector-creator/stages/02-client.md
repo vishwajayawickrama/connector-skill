@@ -67,6 +67,20 @@ bash <skill-root>/scripts/run_bal_command.sh "bal build" "<OUTPUT_DIR>"
 
 > ⚠️ A `bal build` failure is always a generated-code issue, never a license format issue. Do NOT re-run client generation with different `--license` options or a reformatted header — go directly to the Fix Procedure.
 
+**Regen recovery (if `REGENERATION_MODE` is true and fix procedure exhausted without success):**
+
+Delete the stale `tests/` directory left over from the previous connector version and retry the build once more:
+
+```bash
+rm -rf "<OUTPUT_DIR>/tests"
+bash <skill-root>/scripts/run_bal_command.sh "bal build" "<OUTPUT_DIR>"
+```
+
+- Exit 0 → build now clean; tests will be regenerated in Stage 03 — continue to completion
+- Non-zero → escalate to user (same path as fresh generation exhaustion)
+
+If `REGENERATION_MODE` is false, escalate to user immediately after fix procedure exhaustion.
+
 ---
 
 ## Step 4: Stage completion

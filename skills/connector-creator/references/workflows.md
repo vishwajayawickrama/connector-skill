@@ -17,6 +17,22 @@ Stages run in this fixed order. Each stage may be skipped if the user excluded i
 5. docs       → skippable
 ```
 
+## Regeneration Mode
+
+When `REGENERATION_MODE` is true, stages apply the following additional behaviour:
+
+| Stage | Regen-specific action |
+|-------|-----------------------|
+| Sanitize (01) | Auto-apply existing `sanitations.md` to the new spec via LLM before sanitizing — no user prompt |
+| Client (02) | After fix procedure exhaustion: delete stale `tests/` and retry build once before escalating |
+| Tests (03) | Delete `tests/` before generating mock service and test file |
+| Examples (04) | Delete `examples/` before generating examples |
+| Docs (05) | No change |
+
+`REGENERATION_MODE` is set in Stage 00 Step 1b and read by all subsequent stages.
+
+---
+
 Skip validation rules (mirror the connector-tool's `OpenApiStageValidationUtils`):
 - If `sanitize` is skipped: `<SPEC_DIR>/aligned_ballerina_openapi.yaml` must exist — fail with a clear message if not.
 - If `client` is skipped: `<OUTPUT_DIR>/client.bal` must exist — fail with a clear message if not.

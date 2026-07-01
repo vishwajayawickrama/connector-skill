@@ -15,7 +15,17 @@ Before running any new processing, check whether a `sanitations.md` already exis
 test -f "<SPEC_DIR>/sanitations.md" && echo "exists" || echo "missing"
 ```
 
-**If `sanitations.md` exists**, offer the following 2+1 choice:
+**If `REGENERATION_MODE` is true and `sanitations.md` exists** — auto-apply without prompting:
+
+> Replay recorded sanitations onto the new spec. Read `sanitations.md` and the new spec metadata (from `parse_openapi_spec.py`). Prompt the LLM:
+> > The following sanitations were applied to the previous version of this spec.
+> > Apply the same transformations to the new spec where applicable.
+> > If a rule no longer applies (the field/path no longer exists in the new spec), skip it silently.
+> > [sanitations.md content] [SPEC_METADATA JSON]
+>
+> Write the LLM output back to `<SPEC_PATH>` in-place. Print: `>>> Applied existing sanitations to new spec`. Then proceed to Step 0b.
+
+**If `REGENERATION_MODE` is false and `sanitations.md` exists** — offer the 2+1 choice:
 
 > A `sanitations.md` was found at `<SPEC_DIR>/sanitations.md`. Apply the recorded sanitations to the spec before processing?
 > 1. Yes — apply pre-existing sanitations first (recommended — preserves prior human edits)
