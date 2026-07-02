@@ -6,20 +6,6 @@ Skip this stage if `examples` is in `EXCLUDED_STAGES`.
 
 ---
 
-## Step 0 (regen only): Delete existing examples directory
-
-If `REGENERATION_MODE` is true and `<EXAMPLE_DIR>` exists:
-
-```bash
-rm -rf "<EXAMPLE_DIR>"
-```
-
-Print: `>>> Cleared existing examples/ for regeneration`
-
-This ensures examples are regenerated cleanly from the new spec with no stale files from the previous connector version.
-
----
-
 ## Step 1: Analyse the client and connector metadata
 
 Run both scripts upfront — this replaces all inline file reading for this stage:

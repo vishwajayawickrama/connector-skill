@@ -37,37 +37,6 @@ Store the result as `SPEC_PATH`.
 
 ---
 
-## Step 1b: Detect existing connectors
-
-Before validating the spec, scan the CWD tree for existing connector implementations:
-
-```bash
-bash <skill-root>/scripts/find_existing_connectors.sh
-```
-
-- **No results** → set `REGENERATION_MODE = false`, continue to Step 2.
-- **One result found** → present a "2+1" prompt:
-
-  > I found an existing connector at `<path>` (`client.bal` detected).
-  > How would you like to proceed?
-  > 1. **Regenerate** — update this existing connector from the new/updated spec (recommended)
-  > 2. **Fresh generation** — generate a new connector from scratch in a new directory
-  > 3. Enter a custom output path for fresh generation
-
-  If the user chooses **Regenerate**:
-  - Set `REGENERATION_MODE = true`
-  - Set `OUTPUT_DIR` to the detected connector directory
-  - Read its `Ballerina.toml` (if present) and set `BAL_ORG`, `BAL_PACKAGE` — skip Step 3 and Step 3b
-  - Continue to Step 2
-
-  If the user chooses **Fresh generation** or a custom path:
-  - Set `REGENERATION_MODE = false`
-  - Continue normally (Step 2 → Step 3 → Step 3b)
-
-- **Multiple results** → list all found paths and ask the user to pick one to regenerate, or choose fresh generation.
-
----
-
 ## Step 2: Validate the spec
 
 ```bash
@@ -255,7 +224,6 @@ Tags:           <tags or "all">
 Operations:     <operations or "all">
 Remote methods: <yes/no>
 Interactive:    <yes/no>
-Regeneration:   <yes (updating <OUTPUT_DIR>) / no (fresh)>
 Skip stages:    <stages or "none">
 ```
 

@@ -87,7 +87,6 @@ These variables are set in Setup (stage 00) and used by all subsequent stages:
 | `INTERACTIVE_MODE` | Boolean — pause after each stage (connector-tool default: false) |
 | `EXCLUDED_STAGES` | List of stage names to skip — valid values: `sanitize`, `client`, `tests`, `examples`, `docs` |
 | `SPEC_METADATA` | JSON from `parse_openapi_spec.py` — the only spec representation in LLM context |
-| `REGENERATION_MODE` | Boolean — true when updating an existing connector detected in CWD; set in Stage 00 |
 
 ---
 
@@ -121,9 +120,6 @@ bash scripts/check_environment.sh
 
 # Find OpenAPI spec candidates in CWD — use before prompting for spec path
 bash scripts/find_spec_files.sh
-
-# Find existing connector directories (client.bal) under CWD — used in setup to detect regen candidates
-bash scripts/find_existing_connectors.sh
 
 # Initialise a Ballerina package in the output dir (bal new . + remove main.bal)
 bash scripts/init_ballerina_package.sh "<output-dir>"
