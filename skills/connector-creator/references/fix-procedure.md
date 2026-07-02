@@ -40,6 +40,12 @@ For each error in `COMPILE_ERRORS`:
 
 > The following compilation errors were found. Apply targeted fixes to resolve each one. Do not restructure or refactor code beyond what is strictly required to fix the errors.
 >
+> When fixing, apply these known patterns:
+>
+> **Ambiguous type on `Type|record {}` union**: When a field's declared type is `SomeType|record {}`, a bare `{ ... }` mapping constructor is ambiguous. Fix: add an explicit type cast — change `fieldName: { ... }` to `fieldName: <SomeType>{ ... }`. Apply at every nesting level; fixing the outermost may reveal the same error on an inner field.
+>
+> **Missing required field in record literal**: When a record literal omits a required field, add it. The common case in mock/service code is returning `AnydataDefault` (or any type that spreads `*http:DefaultStatusCodeResponse`): that spread type has a required `readonly DefaultStatus status` field that has no default. Fix: add `status: new (200),` to the literal (adjust the code to match context). Example — change `return { body: value };` to `return { status: new (200), body: value };`.
+>
 > [structured errors with code snippets]
 
 Use the Edit tool to apply each fix at the specific file and line.

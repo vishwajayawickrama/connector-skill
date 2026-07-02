@@ -112,6 +112,22 @@ Rules:
 - Import only `ballerina/io` and `<BAL_ORG>/<BAL_PACKAGE>`
 - Entry point is always `public function main() returns error?`
 
+Before writing, verify:
+- Have I used only field names that appear explicitly in the relevant type definitions?
+- For any field whose declared type contains `|record {}`, have I added an explicit type cast (`<TypeName>{ ... }`)?
+- Have I used Ballerina field names (not `@jsondata:Name` annotation values)?
+- Are my imports exactly the two required ones (`ballerina/io` and the connector import)?
+
+**Compilation safety rules (all mandatory):**
+
+**Rule 1 — No invented fields**: Only set fields that are explicitly declared in the type definitions. Setting a field that does not exist in the record causes a compilation error.
+
+**Rule 2 — Ballerina field names, not JSON annotation values**: When a record field has `@jsondata:Name {value: "json_name"}`, use the Ballerina identifier (the line below the annotation), NOT the annotation string value. Example: `@jsondata:Name {value: "tweet_count"}` above `int tweetCount` → write `tweetCount: 42` in code, never `"tweet_count": 42`.
+
+**Rule 3 — Explicit type cast for `Type|record {}` union fields**: Before writing any record literal, check for fields whose declared type contains `|record {}`. Every such field requires an explicit type cast: write `fieldName: <SomeType>{ ... }`, never a bare `fieldName: { ... }`. Apply at every nesting level.
+
+**Rule 4 — Fixed import set**: The only allowed imports are `import ballerina/io;` and `import <BAL_ORG>/<BAL_PACKAGE>;`. Do not add `import ballerina/http;` or any other import — all connector types are accessed through the connector module alias.
+
 ### 3e: Write `<EXAMPLE_DIR>/<EXAMPLE_NAME>/Ballerina.toml`
 
 ```toml

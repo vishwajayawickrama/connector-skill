@@ -107,10 +107,19 @@ Rewrite `mock_service.bal` completing every resource function body. The followin
 - **`@jsondata:Name` annotations**: when a record field has `@jsondata:Name {value: "json_name"}`, use the **Ballerina identifier** (the line below the annotation), NOT the annotation string value
   - Wrong: `{"tweet_count": 42}` — will NOT compile
   - Correct: `{tweetCount: 42}` — uses the Ballerina field name
-- **`Type|record {}` union fields (BCE2523)**: any field whose declared type contains `|record {}` requires an explicit type cast on any mapping constructor assigned to it
-  - Wrong: `idleSessionSignOut: {isEnabled: true}` — BCE2523, ambiguous type
+- **Avoid ambiguous type on `Type|record {}` union fields**: any field whose declared type contains `|record {}` requires an explicit type cast on any mapping constructor assigned to it
+  - Wrong: `idleSessionSignOut: {isEnabled: true}` — ambiguous type
   - Correct: `idleSessionSignOut: <MicrosoftGraphIdleSessionSignOut>{isEnabled: true}`
   - This rule applies at every nesting level
+
+**CRITICAL — `AnydataDefault` return literals**: Some resource functions return bare `AnydataDefault` (not in a union with a success type). `AnydataDefault` spreads `*http:DefaultStatusCodeResponse`, which has a required non-defaultable field `readonly DefaultStatus status`. You MUST include this field in every return literal — omitting it causes a missing-required-field error.
+- Wrong: `return { body: "some value" };`
+- Correct: `return { status: new (200), body: "some value" };`
+- For non-200 results use the matching code (e.g. `new (404)`, `new (500)`). For a generic mock, `new (200)` is the correct default.
+
+**CRITICAL — Preserve all import statements**: The generated stub already contains `import ballerina/http;` (and possibly `import ballerina/log;`). Copy every import line from the stub into your output exactly as-is. Never remove or omit an existing import — doing so makes every `http:` symbol undefined.
+
+**CRITICAL — Never redeclare a resource function**: The stub defines a fixed set of resource function signatures (HTTP method + path). Your output must contain each signature exactly once. Do NOT write a new `resource function` declaration for a path that already exists in the template — duplicating a signature causes a redeclared-symbol error. Your only job is to fill in the body of each existing stub.
 
 ---
 
@@ -156,7 +165,9 @@ final string token = isLiveServer ? os:getEnv("<CRED_ENV_VAR>") : "test_token";
   - Array response: `test:assertTrue(response.data.length() > 0);`
   - Errors field: `test:assertTrue(response?.errors is ());`
   - No-body success (HTTP 202 etc.): declare result as `error?`, assert `test:assertTrue(response is ());`
-- **`Type|record {}` union fields (BCE2523)**: same rule as mock server — any mapping constructor for a `Type|record {}` field must use an explicit type cast
+- **Avoid ambiguous type on `Type|record {}` union fields**: same rule as mock server — any mapping constructor for a `Type|record {}` field must use an explicit type cast
+- **Include `import ballerina/http;` when needed**: If I use any `http:`-prefixed identifier anywhere in the file (e.g. `http:BearerTokenConfig`, `http:Response`, `http:NoContent`), I MUST add `import ballerina/http;` at the top of the file. Omitting it makes every such reference undefined.
+- **Only use type names visible in the provided context**: Every type name I use for client configuration, auth, or connection setup MUST appear verbatim in the `init` method signature or the referenced type definitions provided. I must NOT use bare stdlib names like `BearerTokenConfig` or `OAuth2RefreshTokenGrantConfig` — these appear only inside a connector-level wrapper (`ConnectionConfig`, `ApiKeysConfig`, etc.) in the provided context. I must use the wrapper type, not the inner stdlib type.
 
 ---
 
