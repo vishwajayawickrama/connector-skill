@@ -47,13 +47,6 @@ else
   FAILED=0
 fi
 
-# ANTHROPIC_API_KEY (required for LLM stages)
-if [ -n "${ANTHROPIC_API_KEY:-}" ]; then
-  check "ANTHROPIC_API_KEY" "true" "set"
-else
-  check "ANTHROPIC_API_KEY" "false" "not set — required for sanitize, examples, and docs stages"
-fi
-
 if [ $FAILED -ne 0 ]; then
   echo ""
   echo "One or more required tools are missing. Please resolve the issues above before continuing." >&2
